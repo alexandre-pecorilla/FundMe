@@ -1,6 +1,7 @@
 # Remix compiler outputs
 artifacts/
 cache/
+.states/
 
 # Remix downloaded dependencies
 .deps/
