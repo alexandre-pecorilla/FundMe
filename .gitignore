@@ -1,0 +1,12 @@
+# Remix compiler outputs
+artifacts/
+cache/
+
+# Remix downloaded dependencies
+.deps/
+
+# Environment variables (just in case you add one later)
+.env
+
+# Standard Node modules (if you ever export this to Hardhat/Foundry)
+node_modules/
