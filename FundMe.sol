@@ -12,8 +12,11 @@ import {AggregatorV3Interface} from "@chainlink/contracts/src/v0.8/shared/interf
 
 contract FundMe {
 
-    uint256  public minimumUSD = 5; // the minimum amount in USD we want to require for calling the fund function
 
+    // the minimum amount in USD we want to require for calling the fund function
+    // we have to add 18 zeros to it because solidity doesnt have floating numbers and speaks in wei, where 1 ETH = 1 * 1e18
+    // so 5 dollars is represented as 5000000000000000000 which is equivalent to $5.000000000000000000, so 18 decimals
+    uint256  public minimumUSD = 5 * 1e18; 
     // payable function
     // you can send eth to this function to fund the smart contract
     function fund() public payable { 
@@ -22,10 +25,12 @@ contract FundMe {
         // unlike in the previous commit where we required 1 ETH, here we require a dollar amount
         // Therefore we will need to call an oracle to get the spot price of ethereum in ETH
         // That way we can require a minimum amount of ETH that matches minimumUSD
-        require(msg.value >= minimumUSD, "You must sent at least 1 ETH.");
+        require(getConversionRate(msg.value) >= minimumUSD, "You must sent at least $5.");
     }
 
     // function to fetch the live price of ethereum from the Chainlink Sepolia reference contract
+    // Chainlink returns the value with 8 decimals precision
+    // e.g. 197338954554 => $1973.38954554
     function getEthPrice() public view returns (uint256) {
 
         // Wrap the sepolia contract address in the Interface so we can make calls
@@ -35,4 +40,20 @@ contract FundMe {
         (, int256 price, , , ) = priceFeed.latestRoundData();
         return uint256(price);
     }
+
+    function getConversionRate(uint256 ethAmount) public view returns (uint256) {
+        // remember it has only 8 decimals so we need to add 10 zeros
+        // so 197338954554 becomes 1973389545540000000000 which is $1973.389545540000000000 (remember solidity has no floating numbers so this is just mental representation)
+        uint256 ethPrice = getEthPrice() * 1e10; // so now we have the current eth price in the proper format with 18 decimal precision
+
+        // now we can multiply the ethPrice with the ethAmount, which comes from msg.value passed as an argument which is in wei with 18 decimal precision so its perfect
+        // so both have a precision of 18 decimals
+        uint256 ethAmountUSD = ethPrice * ethAmount;
+
+        // we return the amount in USD divided by 1e18 to go back to 18 decimal precision
+        // because multiplying two numbers with 18 decimals precision give us 36 decimal precision
+        return ethAmountUSD / 1e18;
+    }
+
+
 }
