@@ -14,7 +14,11 @@ contract FundMe {
     // the minimum amount in USD we want to require for calling the fund function
     // we have to add 18 zeros to it because solidity doesnt have floating numbers and speaks in wei, where 1 ETH = 1 * 1e18
     // so 5 dollars is represented as 5000000000000000000 which is equivalent to $5.000000000000000000, so 18 decimals
-    uint256  public minimumUSD = 5 * 1e18; // can also be 5e18
+    // constants are variables that are assigned directly at compile time where they are declared and outside of functions
+    // their value can't change, and they dont take storage space because the EVM hardcode the value in the contract bytecode
+    // they lower gas costs when deploying and interacting with the contract
+    // uppercases and underscores is the standard for constants
+    uint256  public constant MINIMUM_USD = 5 * 1e18; // can also be 5e18
 
     // array of addresses that sent us money
     // We are just reserving a "parking spot" in the contract's permanent storage.
@@ -26,12 +30,17 @@ contract FundMe {
     // key is an address, value is how much this address funded the contract (since the last withdrawal)
     mapping(address funder => uint256 amountFunded) public addresssToAmountFunded;
 
-    address public owner;
+    // immutables are variables similar to constants but their value is assigned only once at deployment, usually in the constructor
+    // so they aren't assigned where they're declared (in the state outside any function) like constants, but their value is assigned only once
+    // just like constants, their values can't change and they don't take storage space either because like constants the EVM hardcode the value in the contract bytecode
+    // they lower gas costs when deploying and interacting with the contract
+    // the convention for immutable variables names is to start with i_
+    address public immutable i_owner;
 
     // function immediately called when we deploy the contract
     // its called in the same transaction that deploys the contract
     constructor() {
-        owner = msg.sender; // set the owner address to our address (since we are the ones deploying the contract, msg.sender will be our address)
+        i_owner = msg.sender; // set the owner address to our address (since we are the ones deploying the contract, msg.sender will be our address)
     }
 
     // payable function
@@ -42,7 +51,7 @@ contract FundMe {
         // unlike in the previous commit where we required 1 ETH, here we require a dollar amount
         // Therefore we will need to call an oracle to get the spot price of ethereum in ETH
         // That way we can require a minimum amount of ETH that matches minimumUSD
-        require(msg.value.getConversionRate() >= minimumUSD, "You must sent at least $5."); // This is allowd because we did using PriceConverter for uint256;  
+        require(msg.value.getConversionRate() >= MINIMUM_USD, "You must sent at least $5."); // This is allowd because we did using PriceConverter for uint256;  
         funders.push(msg.sender); // store the address of the sender to the array
         addresssToAmountFunded[msg.sender] += msg.value; // store the amount sent by the sender
     }
@@ -100,7 +109,7 @@ contract FundMe {
 
     // function modifier (decorator) to only allow the owner to access a function
     modifier onlyOwner() {
-        require(msg.sender == owner, "Must be owner");
+        require(msg.sender == i_owner, "Must be owner");
         
         // the below must be at the end of the modifier if we want the modifier to execute FIRST before a function code is executed
         // if we put it at the beginning of the modifier (before the require) the modifier executes LAST after a function codei is executed 
