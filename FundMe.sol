@@ -123,4 +123,25 @@ contract FundMe {
         _;
     }
 
+    // What happens if someone sends eth to this contract without calling the fund function, directly with the contract address instead
+
+    // receive()
+    // this function is called if someone sends ETH directly using the contract address, without using our fund function
+    // there can be only be one receive function, it has to be external, payable and takes no arguments
+    // so receive() is the catcher, or the fallback for any monetary transaction
+    // i.e. transaction with a value (msg.value) and no data (msg.data)
+    // if there is data (msg.data) it goes to fallback() instead
+    receive() external payable {
+        fund(); // we make it call fund()
+    }
+
+    // fallback() 
+    // It's like receive(), but for transactions that have data
+    // so if you receive a transaction that has data (msg.data) and doesn't call any know functions, it fallbacks here
+    // note that even if it has value (msg.value), as long as it has data (msg.data) it falls back here
+    fallback() external payable {
+        fund(); // we also call fund here because we are greedy, so even if there is unexpected data in msg.data, if there is value (msg.value) we take it!
+    }
+
+
 }
