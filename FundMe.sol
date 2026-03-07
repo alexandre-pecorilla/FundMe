@@ -48,11 +48,8 @@ contract FundMe {
     }
 
     // withdraw funds and reset the funders array and mapping addresssToAmountFunded
-    function withdraw() public {
-        
-        // only the owner of the contract can withdraw the funds
-        require(msg.sender == owner, "Must be owner");
-        
+    function withdraw() public onlyOwner {
+                
         // reset the mapping
         for (uint256 funderIndex; funderIndex < funders.length; funderIndex++) {
             address funder = funders[funderIndex];
@@ -99,6 +96,16 @@ contract FundMe {
         (bool callSuccess, ) = payable(msg.sender).call{value: address(this).balance}("");
         require(callSuccess, "Call failed");
 
+    }
+
+    // function modifier (decorator) to only allow the owner to access a function
+    modifier onlyOwner() {
+        require(msg.sender == owner, "Must be owner");
+        
+        // the below must be at the end of the modifier if we want the modifier to execute FIRST before a function code is executed
+        // if we put it at the beginning of the modifier (before the require) the modifier executes LAST after a function codei is executed 
+        // this _; basically means "do whatever that is in the function that is modified (decorated)
+        _;
     }
 
 }
