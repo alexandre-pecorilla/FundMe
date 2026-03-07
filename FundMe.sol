@@ -17,8 +17,13 @@ contract FundMe {
     uint256  public minimumUSD = 5 * 1e18; // can also be 5e18
 
     // array of addresses that sent us money
+    // We are just reserving a "parking spot" in the contract's permanent storage.
+    // Because it's just a reservation, it defaults to an empty array (length 0). 
+    // We don't need the 'new' keyword or a size because we aren't physically 
+    // allocating a chunk of memory yet.
     address[] public funders;
 
+    // key is an address, value is how much this address funded the contract (since the last withdrawal)
     mapping(address funder => uint256 amountFunded) public addresssToAmountFunded;
 
 
@@ -35,5 +40,21 @@ contract FundMe {
         addresssToAmountFunded[msg.sender] += msg.value; // store the amount sent by the sender
     }
 
+    // withdraw funds and reset the funders array and mapping addresssToAmountFunded
+    function withdraw() public {
+        // reset the mapping
+        for (uint256 funderIndex; funderIndex < funders.length; funderIndex++) {
+            address funder = funders[funderIndex];
+            addresssToAmountFunded[funder] = 0;
+        }
+
+        // reset the array
+        // To wipe the array clean, we build a brand new array and overwrite the old one.
+        // The 'new' keyword tells Solidity: "Allocate a new chunk of memory right now."
+        // THE RULE: When using 'new' to build an array in memory, Solidity absolutely 
+        // requires us to tell it the exact starting size. 
+        // So, '(0)' explicitly means "make this brand new array exactly zero items long."
+        funders = new address[](0);
+    }
 
 }
