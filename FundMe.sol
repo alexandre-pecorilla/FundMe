@@ -26,6 +26,13 @@ contract FundMe {
     // key is an address, value is how much this address funded the contract (since the last withdrawal)
     mapping(address funder => uint256 amountFunded) public addresssToAmountFunded;
 
+    address public owner;
+
+    // function immediately called when we deploy the contract
+    // its called in the same transaction that deploys the contract
+    constructor() {
+        owner = msg.sender; // set the owner address to our address (since we are the ones deploying the contract, msg.sender will be our address)
+    }
 
     // payable function
     // you can send eth to this function to fund the smart contract
@@ -42,6 +49,10 @@ contract FundMe {
 
     // withdraw funds and reset the funders array and mapping addresssToAmountFunded
     function withdraw() public {
+        
+        // only the owner of the contract can withdraw the funds
+        require(msg.sender == owner, "Must be owner");
+        
         // reset the mapping
         for (uint256 funderIndex; funderIndex < funders.length; funderIndex++) {
             address funder = funders[funderIndex];
