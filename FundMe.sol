@@ -4,6 +4,9 @@ pragma solidity ^0.8.18;
 
 import {PriceConverter} from "./PriceConverter.sol";
 
+// creating a custom error to save gas
+error NotOwner(); 
+
 contract FundMe {
 
     // allows us to call the functions of PriceConverter from uint256, like msg.value.getEthConversionRate()
@@ -109,8 +112,11 @@ contract FundMe {
 
     // function modifier (decorator) to only allow the owner to access a function
     modifier onlyOwner() {
-        require(msg.sender == i_owner, "Must be owner");
+        //require(msg.sender == i_owner, "Must be owner");
         
+        // this is cheaper in gas than the above because we don't have to pull "Must be owner" into memory everytime the function is called
+        if(msg.sender != i_owner) { revert NotOwner(); }
+
         // the below must be at the end of the modifier if we want the modifier to execute FIRST before a function code is executed
         // if we put it at the beginning of the modifier (before the require) the modifier executes LAST after a function codei is executed 
         // this _; basically means "do whatever that is in the function that is modified (decorated)
