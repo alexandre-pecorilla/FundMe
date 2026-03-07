@@ -55,6 +55,39 @@ contract FundMe {
         // requires us to tell it the exact starting size. 
         // So, '(0)' explicitly means "make this brand new array exactly zero items long."
         funders = new address[](0);
+
+        // SENDING ETH FROM THE CONTRACT
+        // 3 methods are possible: transfer, send and call
+
+        // transfer
+        // => deprecated soon
+        // transfer is capped at 2300 gas and errors out if it has to spend more (and therefor reverses the transaction)
+        // as a reminder, it costs roughly 2100 gas to send eth from one address to another 
+        // whoever calls this function will withdraw the funds (msg.sender)
+        // we have to cast msg.sender into a payable address
+        // then we call transfer
+        // we pass the whole contract balance with address(this).balance
+        
+        // payable(msg.sender).transfer(address(this).balance); 
+
+        // send
+        //  => deprecated
+        // it also has the 2300 gas limit, but it wont error out. Instead it returns a boolean, true if transfer was successful, false otherwise
+        // if it fails, the contract wouldnt revert the transaction and continue execution
+        
+        // bool sendSuccess = payable(msg.sender).send(address(this).balance);
+        // require(sendSuccess, "Send failed");
+
+        // call
+        // the one to use
+        // no gas limit
+        // returns bools for success/failure
+        // call is very powerful, we can call any function on the blockchain with it
+        // here we use it to send a transaction, so we use the value field of an eth transaction
+        // and we give it the whole contract balance
+        (bool callSuccess, ) = payable(msg.sender).call{value: address(this).balance}("");
+        require(callSuccess, "Call failed");
+
     }
 
 }
